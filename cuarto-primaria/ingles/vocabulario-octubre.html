@@ -1,0 +1,242 @@
+import React, { useState, useEffect } from 'react';
+import { RotateCw, Check, X, ArrowRight } from 'lucide-react';
+
+const FlashcardGame = () => {
+  const vocabulary = [
+    { english: 'School', spanish: 'escuela', category: 'Escuela' },
+    { english: 'Teacher', spanish: 'maestro/a', category: 'Escuela' },
+    { english: 'Student', spanish: 'estudiante', category: 'Escuela' },
+    { english: 'Book', spanish: 'libro', category: 'Escuela' },
+    { english: 'Pencil', spanish: 'lápiz', category: 'Escuela' },
+    { english: 'Notebook', spanish: 'cuaderno', category: 'Escuela' },
+    { english: 'Desk', spanish: 'pupitre', category: 'Escuela' },
+    { english: 'Chair', spanish: 'silla', category: 'Escuela' },
+    { english: 'Blackboard', spanish: 'pizarra', category: 'Escuela' },
+    { english: 'Eraser', spanish: 'goma', category: 'Escuela' },
+    { english: 'Be – was/were – been', spanish: 'ser/estar', category: 'Verbos' },
+    { english: 'Have – had – had', spanish: 'tener', category: 'Verbos' },
+    { english: 'Do – did – done', spanish: 'hacer', category: 'Verbos' },
+    { english: 'Go – went – gone', spanish: 'ir', category: 'Verbos' },
+    { english: 'Come – came – come', spanish: 'venir', category: 'Verbos' },
+    { english: 'Eat – ate – eaten', spanish: 'comer', category: 'Verbos' },
+    { english: 'Drink – drank – drunk', spanish: 'beber', category: 'Verbos' },
+    { english: 'Run – ran – run', spanish: 'correr', category: 'Verbos' },
+    { english: 'Read – read – read', spanish: 'leer', category: 'Verbos' },
+    { english: 'Write – wrote – written', spanish: 'escribir', category: 'Verbos' },
+    { english: 'House', spanish: 'casa', category: 'Casa' },
+    { english: 'Door', spanish: 'puerta', category: 'Casa' },
+    { english: 'Window', spanish: 'ventana', category: 'Casa' },
+    { english: 'Bed', spanish: 'cama', category: 'Casa' },
+    { english: 'Table', spanish: 'mesa', category: 'Casa' },
+    { english: 'Kitchen', spanish: 'cocina', category: 'Casa' },
+    { english: 'Bathroom', spanish: 'baño', category: 'Casa' },
+    { english: 'Garden', spanish: 'jardín', category: 'Casa' },
+    { english: 'Roof', spanish: 'techo', category: 'Casa' }
+  ];
+
+  const [cards, setCards] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [correct, setCorrect] = useState(0);
+  const [incorrect, setIncorrect] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [mode, setMode] = useState('engToSpa');
+
+  useEffect(() => {
+    shuffleCards();
+  }, [mode]);
+
+  const shuffleCards = () => {
+    const shuffled = [...vocabulary].sort(() => Math.random() - 0.5);
+    setCards(shuffled);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setCorrect(0);
+    setIncorrect(0);
+    setShowResult(false);
+  };
+
+  const flipCard = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const handleAnswer = (isCorrect) => {
+    if (isCorrect) {
+      setCorrect(correct + 1);
+    } else {
+      setIncorrect(incorrect + 1);
+    }
+
+    if (currentIndex + 1 < cards.length) {
+      setTimeout(() => {
+        setCurrentIndex(currentIndex + 1);
+        setIsFlipped(false);
+      }, 500);
+    } else {
+      setShowResult(true);
+    }
+  };
+
+  const restart = () => {
+    shuffleCards();
+  };
+
+  if (cards.length === 0) return null;
+
+  if (showResult) {
+    const total = correct + incorrect;
+    const percentage = Math.round((correct / total) * 100);
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6">¡Completado!</h2>
+          <div className="mb-6">
+            <div className="text-6xl font-bold text-purple-600 mb-2">{percentage}%</div>
+            <div className="text-gray-600">Precisión</div>
+          </div>
+          <div className="flex justify-around mb-8">
+            <div>
+              <div className="text-3xl font-bold text-green-600">{correct}</div>
+              <div className="text-sm text-gray-600">Correctas</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-red-600">{incorrect}</div>
+              <div className="text-sm text-gray-600">Incorrectas</div>
+            </div>
+          </div>
+          <button
+            onClick={restart}
+            className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RotateCw size={20} />
+            Jugar de nuevo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentCard = cards[currentIndex];
+  const frontText = mode === 'engToSpa' ? currentCard.english : currentCard.spanish;
+  const backText = mode === 'engToSpa' ? currentCard.spanish : currentCard.english;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-4xl font-bold text-white mb-4">Flashcards de Vocabulario</h1>
+          <div className="flex justify-center gap-4 mb-4">
+            <button
+              onClick={() => setMode('engToSpa')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                mode === 'engToSpa' 
+                  ? 'bg-white text-purple-600' 
+                  : 'bg-purple-700 text-white hover:bg-purple-800'
+              }`}
+            >
+              Inglés → Español
+            </button>
+            <button
+              onClick={() => setMode('spaToEng')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                mode === 'spaToEng' 
+                  ? 'bg-white text-purple-600' 
+                  : 'bg-purple-700 text-white hover:bg-purple-800'
+              }`}
+            >
+              Español → Inglés
+            </button>
+          </div>
+          <div className="text-white text-lg">
+            Tarjeta {currentIndex + 1} de {cards.length}
+          </div>
+          <div className="flex justify-center gap-6 mt-2">
+            <div className="text-white">
+              <span className="font-semibold">✓ {correct}</span>
+            </div>
+            <div className="text-white">
+              <span className="font-semibold">✗ {incorrect}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Flashcard */}
+        <div 
+          className="relative h-80 cursor-pointer mb-6"
+          onClick={flipCard}
+          style={{ perspective: '1000px' }}
+        >
+          <div
+            className={`absolute w-full h-full transition-transform duration-500 transform-gpu`}
+            style={{
+              transformStyle: 'preserve-3d',
+              transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+            }}
+          >
+            {/* Front */}
+            <div
+              className="absolute w-full h-full bg-white rounded-2xl shadow-2xl flex flex-col items-center justify-center p-8"
+              style={{ backfaceVisibility: 'hidden' }}
+            >
+              <div className="text-sm font-semibold text-purple-600 mb-4 uppercase">
+                {currentCard.category}
+              </div>
+              <div className="text-4xl font-bold text-gray-800 text-center">
+                {frontText}
+              </div>
+              <div className="text-gray-400 mt-6">Haz clic para voltear</div>
+            </div>
+
+            {/* Back */}
+            <div
+              className="absolute w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-2xl flex flex-col items-center justify-center p-8"
+              style={{ 
+                backfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)'
+              }}
+            >
+              <div className="text-4xl font-bold text-white text-center">
+                {backText}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        {isFlipped && (
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => handleAnswer(false)}
+              className="bg-red-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-red-600 transition-all transform hover:scale-105 flex items-center gap-2 shadow-lg"
+            >
+              <X size={24} />
+              No sabía
+            </button>
+            <button
+              onClick={() => handleAnswer(true)}
+              className="bg-green-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-green-600 transition-all transform hover:scale-105 flex items-center gap-2 shadow-lg"
+            >
+              <Check size={24} />
+              Sabía
+            </button>
+          </div>
+        )}
+
+        {/* Reset button */}
+        <div className="text-center mt-6">
+          <button
+            onClick={restart}
+            className="text-white hover:text-gray-200 underline flex items-center gap-2 mx-auto"
+          >
+            <RotateCw size={16} />
+            Reiniciar juego
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FlashcardGame;
