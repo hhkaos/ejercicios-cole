@@ -1,0 +1,22 @@
+[
+  { "english": "Family", "spanish": "familia", "category": "Familia" },
+  { "english": "Mother", "spanish": "madre", "category": "Familia" },
+  { "english": "Father", "spanish": "padre", "category": "Familia" },
+  { "english": "Brother", "spanish": "hermano", "category": "Familia" },
+  { "english": "Sister", "spanish": "hermana", "category": "Familia" },
+  { "english": "Grandmother", "spanish": "abuela", "category": "Familia" },
+  { "english": "Grandfather", "spanish": "abuelo", "category": "Familia" },
+  { "english": "Uncle", "spanish": "tío", "category": "Familia" },
+  { "english": "Aunt", "spanish": "tía", "category": "Familia" },
+  { "english": "Cousin", "spanish": "primo/a", "category": "Familia" },
+  { "english": "Colors", "spanish": "colores", "category": "Colores" },
+  { "english": "Red", "spanish": "rojo", "category": "Colores" },
+  { "english": "Blue", "spanish": "azul", "category": "Colores" },
+  { "english": "Green", "spanish": "verde", "category": "Colores" },
+  { "english": "Yellow", "spanish": "amarillo", "category": "Colores" },
+  { "english": "Black", "spanish": "negro", "category": "Colores" },
+  { "english": "White", "spanish": "blanco", "category": "Colores" },
+  { "english": "Orange", "spanish": "naranja", "category": "Colores" },
+  { "english": "Purple", "spanish": "morado", "category": "Colores" },
+  { "english": "Pink", "spanish": "rosa", "category": "Colores" }
+]

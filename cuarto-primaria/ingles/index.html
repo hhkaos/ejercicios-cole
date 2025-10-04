@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flashcards de Vocabulario</title>
+
+    <!-- Tailwind (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React + ReactDOM (UMD globals) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel Standalone to transpile JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      /* Smooth font rendering */
+      body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div id="root"></div>
+
+    <script>
+      // Simple React icon stubs to replace lucide-react components used in the app.
+      // They keep the UI layout and semantics without extra dependencies.
+      (function() {
+        const { createElement } = React;
+
+        function makeIcon(pathD, viewBox = "0 0 24 24") {
+          return function Icon(props) {
+            const { size = 24, ...rest } = props || {};
+            return createElement(
+              "svg",
+              { width: size, height: size, viewBox, fill: "none", xmlns: "http://www.w3.org/2000/svg", ...rest },
+              createElement("path", { d: pathD, stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" })
+            );
+          };
+        }
+
+        // Minimalistic shapes approximating RotateCw, Check, X, ArrowRight
+        window.__Icons = {
+          RotateCw: makeIcon("M21 12a9 9 0 10-3.5 7.07M21 3v6h-6"),
+          Check:    makeIcon("M20 6L9 17l-5-5"),
+          X:        makeIcon("M18 6L6 18M6 6l12 12"),
+          ArrowRight: makeIcon("M5 12h14M13 5l7 7-7 7")
+        };
+      })();
+    </script>
+
+    <script type="module">
+  // Función para obtener parámetros de URL
+  function getUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      month: urlParams.get('month') || null
+    };
+  }
+
+  // Función para cargar vocabulario desde archivos JSON (estático para GitHub Pages)
+  async function loadVocabulary(monthName) {
+    if (monthName) {
+      // Cargar archivo específico
+      const response = await fetch(`./month/${monthName}.json`);
+      if (!response.ok) {
+        throw new Error(`No se pudo cargar el archivo ${monthName}.json`);
+      }
+      return await response.json();
+    } else {
+      // Cargar todos los archivos usando el índice estático
+      try {
+        const indexResponse = await fetch('./month/index.json');
+        if (indexResponse.ok) {
+          const { files } = await indexResponse.json();
+          const allVocabulary = [];
+          
+          for (const file of files) {
+            try {
+              const fileResponse = await fetch(`./month/${file}.json`);
+              if (fileResponse.ok) {
+                const data = await fileResponse.json();
+                allVocabulary.push(...data);
+              }
+            } catch (err) {
+              console.warn(`No se pudo cargar ${file}.json:`, err);
+            }
+          }
+          
+          return allVocabulary;
+        }
+      } catch (err) {
+        console.warn('No se pudo cargar el índice, usando lista hardcodeada');
+      }
+      
+      // Fallback: cargar archivos conocidos
+      const files = ['octubre', 'noviembre'];
+      const allVocabulary = [];
+      
+      for (const file of files) {
+        try {
+          const fileResponse = await fetch(`./month/${file}.json`);
+          if (fileResponse.ok) {
+            const data = await fileResponse.json();
+            allVocabulary.push(...data);
+          }
+        } catch (err) {
+          console.warn(`No se pudo cargar ${file}.json:`, err);
+        }
+      }
+      
+      return allVocabulary;
+    }
+  }
+
+  async function boot() {
+    try {
+      const { month } = getUrlParams();
+      
+      // Cargar vocabulario
+      const vocabulary = await loadVocabulary(month);
+      
+      if (vocabulary.length === 0) {
+        document.getElementById("root").innerHTML = "<div class='p-6 text-red-700 bg-red-50 rounded-xl'>No se encontró vocabulario para cargar</div>";
+        return;
+      }
+
+      // Cargar el componente React
+      const appPath = "./vocabulario-octubre.js";
+      const resp = await fetch(appPath);
+      if (!resp.ok) {
+        document.getElementById("root").innerHTML = "<div class='p-6 text-red-700 bg-red-50 rounded-xl'>No se pudo cargar el componente</div>";
+        return;
+      }
+      let source = await resp.text();
+
+      // Quitar imports
+      source = source.replace(/^\s*import\s+React.*?from\s+['"]react['"];?\s*$/m, "");
+      source = source.replace(/^\s*import\s+\{[^}]*\}\s+from\s+['"]lucide-react['"];?\s*$/m, "");
+
+      // Inyectar React hooks, iconos y vocabulario
+      const reactInject = `
+const { useState, useEffect } = React;
+const RotateCw = window.__Icons.RotateCw;
+const Check = window.__Icons.Check;
+const X = window.__Icons.X;
+const ArrowRight = window.__Icons.ArrowRight;
+const vocabulary = ${JSON.stringify(vocabulary)};
+`;
+      source = source.replace(/(const\s+FlashcardGame\s*=\s*\(\)\s*=>\s*\{)/, reactInject + "$1");
+
+      // Reemplazar export default
+      source = source.replace(/export\s+default\s+FlashcardGame\s*;?\s*$/, "window.FlashcardGame = FlashcardGame;");
+
+      // Transpilar JSX
+      const transformed = Babel.transform(source, { presets: ["react"] }).code;
+
+      // Ejecutar
+      (0, eval)(transformed);
+
+      // Renderizar
+      const rootEl = document.getElementById("root");
+      const root = ReactDOM.createRoot(rootEl);
+      root.render(React.createElement(window.FlashcardGame));
+      
+    } catch (err) {
+      document.getElementById("root").innerHTML = "<div class='p-6 text-red-700 bg-red-50 rounded-xl'>Error: " + err.message + "</div>";
+      console.error(err);
+    }
+  }
+
+  boot();
+</script>
+
+  </body>
+</html>
