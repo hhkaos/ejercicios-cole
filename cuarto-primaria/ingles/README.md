@@ -5,8 +5,9 @@ Una aplicación de flashcards para aprender vocabulario en inglés y español, d
 ## Características
 
 - **Aplicación estática**: Funciona completamente en GitHub Pages sin servidor
-- **Carga dinámica de vocabulario**: Carga vocabulario desde archivos JSON en la carpeta `month/`
-- **Parámetros de URL**: Especifica qué archivo de vocabulario cargar usando el parámetro `month`
+- **Carga dinámica desde Google Sheets**: Carga vocabulario directamente desde Google Sheets usando OpenSheet API
+- **Filtros interactivos**: Desplegables para seleccionar mes y categoría específicos
+- **Parámetros de URL**: Especifica qué mes cargar usando el parámetro `month`
 - **Modos de estudio**: Inglés → Español y Español → Inglés
 - **Interfaz moderna**: Diseño responsive con Tailwind CSS
 - **Seguimiento de progreso**: Contador de respuestas correctas e incorrectas
@@ -19,16 +20,34 @@ La aplicación está diseñada para funcionar directamente en GitHub Pages. Simp
 
 ### Parámetros de URL
 
-- **Sin parámetros**: Carga todo el vocabulario de todos los archivos
+- **Sin parámetros**: Carga todo el vocabulario de todos los meses
   ```
   https://tu-usuario.github.io/tu-repositorio/
   ```
 
-- **Archivo específico**: Carga solo el vocabulario del archivo especificado
+- **Mes específico**: Carga solo el vocabulario del mes especificado
   ```
   https://tu-usuario.github.io/tu-repositorio/?month=octubre
   https://tu-usuario.github.io/tu-repositorio/?month=noviembre
+  https://tu-usuario.github.io/tu-repositorio/?month=diciembre
+  https://tu-usuario.github.io/tu-repositorio/?month=enero
+  https://tu-usuario.github.io/tu-repositorio/?month=febrero
+  https://tu-usuario.github.io/tu-repositorio/?month=marzo
+  https://tu-usuario.github.io/tu-repositorio/?month=abril
+  https://tu-usuario.github.io/tu-repositorio/?month=mayo
+  https://tu-usuario.github.io/tu-repositorio/?month=junio
   ```
+
+### Filtros Interactivos
+
+La aplicación incluye desplegables para filtrar el contenido:
+
+- **Selector de Mes**: Permite elegir entre todos los meses del curso académico (Octubre a Junio) o "Todos los meses"
+  - Al cambiar el mes, se actualiza automáticamente la URL
+  - El mes de la URL aparece seleccionado por defecto al cargar la página
+- **Selector de Categoría**: 
+  - Si no hay mes seleccionado: muestra todas las categorías de todos los meses
+  - Si hay mes seleccionado: muestra solo las categorías de ese mes específico
 
 ### Estructura de archivos
 
@@ -36,41 +55,35 @@ La aplicación está diseñada para funcionar directamente en GitHub Pages. Simp
 /
 ├── index.html              # Aplicación principal
 ├── vocabulario-octubre.js  # Componente React
-├── month/                 # Carpeta con archivos de vocabulario
-│   ├── index.json         # Índice de archivos disponibles
-│   ├── octubre.json       # Vocabulario de octubre
-│   └── noviembre.json     # Vocabulario de noviembre
 └── README.md              # Este archivo
 ```
 
-### Formato de archivos de vocabulario
+### Fuente de datos
 
-Los archivos JSON deben seguir este formato:
+La aplicación carga el vocabulario directamente desde Google Sheets usando la API de OpenSheet:
 
-```json
-[
-  {
-    "english": "Palabra en inglés",
-    "spanish": "Palabra en español", 
-    "category": "Categoría"
-  }
-]
-```
+- **URL base**: `https://opensheet.elk.sh/1mvPzno2fQuo9E37Pbwfq0bhrd6s5iLm85EO2zCgqnoc/`
+- **Formato de datos**: JSON con estructura `[{"english": "...", "spanish": "...", "category": "..."}]`
+- **Categorías**: Formato `"Categoría - Día Mes"` (ej: "Escuela - 7 Octubre")
 
 ## Agregar nuevo vocabulario
 
-1. Crea un nuevo archivo JSON en la carpeta `month/`
-2. Sigue el formato especificado arriba
-3. Actualiza el archivo `month/index.json` para incluir el nuevo archivo
-4. El archivo estará disponible automáticamente usando `?month=nombreDelArchivo`
+Para agregar nuevo vocabulario, simplemente añade nuevas hojas en tu Google Sheet con el nombre del mes correspondiente. La aplicación detectará automáticamente los nuevos meses disponibles.
 
-### Ejemplo de actualización del índice
+### Formato de datos en Google Sheets
 
-```json
-{
-  "files": ["octubre", "noviembre", "diciembre"]
-}
-```
+Las columnas deben ser:
+- **english**: Palabra en inglés
+- **spanish**: Palabra en español  
+- **category**: Categoría en formato "Nombre - Día Mes" (ej: "Escuela - 7 Octubre")
+
+### Ejemplo de estructura en Google Sheets
+
+| english | spanish | category |
+|---------|---------|----------|
+| school | escuela | Escuela - 7 Octubre |
+| teacher | maestro/a | Escuela - 7 Octubre |
+| Be – was/were – been | ser/estar | Verbos - 21 Octubre |
 
 ## Tecnologías utilizadas
 

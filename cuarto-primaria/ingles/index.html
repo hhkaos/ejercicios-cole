@@ -59,55 +59,36 @@
     };
   }
 
-  // Función para cargar vocabulario desde archivos JSON (estático para GitHub Pages)
+  // Función para cargar vocabulario desde Google Sheets usando OpenSheet API
   async function loadVocabulary(monthName) {
     if (monthName) {
-      // Cargar archivo específico
-      const response = await fetch(`./month/${monthName}.json`);
+      // Cargar archivo específico desde Google Sheets
+      const url = `https://opensheet.elk.sh/1mvPzno2fQuo9E37Pbwfq0bhrd6s5iLm85EO2zCgqnoc/${monthName}`;
+      const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`No se pudo cargar el archivo ${monthName}.json`);
+        throw new Error(`No se pudo cargar el vocabulario de ${monthName} desde Google Sheets`);
       }
       return await response.json();
     } else {
-      // Cargar todos los archivos usando el índice estático
-      try {
-        const indexResponse = await fetch('./month/index.json');
-        if (indexResponse.ok) {
-          const { files } = await indexResponse.json();
-          const allVocabulary = [];
-          
-          for (const file of files) {
-            try {
-              const fileResponse = await fetch(`./month/${file}.json`);
-              if (fileResponse.ok) {
-                const data = await fileResponse.json();
-                allVocabulary.push(...data);
-              }
-            } catch (err) {
-              console.warn(`No se pudo cargar ${file}.json:`, err);
-            }
-          }
-          
-          return allVocabulary;
-        }
-      } catch (err) {
-        console.warn('No se pudo cargar el índice, usando lista hardcodeada');
-      }
-      
-      // Fallback: cargar archivos conocidos
-      const files = ['octubre', 'noviembre'];
+      // Cargar todos los meses disponibles desde Google Sheets
+      const months = ['Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
       const allVocabulary = [];
       
-      for (const file of files) {
+      for (const month of months) {
         try {
-          const fileResponse = await fetch(`./month/${file}.json`);
-          if (fileResponse.ok) {
-            const data = await fileResponse.json();
+          const url = `https://opensheet.elk.sh/1mvPzno2fQuo9E37Pbwfq0bhrd6s5iLm85EO2zCgqnoc/${month}`;
+          const response = await fetch(url);
+          if (response.ok) {
+            const data = await response.json();
             allVocabulary.push(...data);
           }
         } catch (err) {
-          console.warn(`No se pudo cargar ${file}.json:`, err);
+          console.warn(`No se pudo cargar el vocabulario de ${month}:`, err);
         }
+      }
+      
+      if (allVocabulary.length === 0) {
+        throw new Error('No se pudo cargar ningún vocabulario desde Google Sheets');
       }
       
       return allVocabulary;
@@ -127,7 +108,7 @@
       }
 
       // Cargar el componente React
-      const appPath = "./vocabulario-octubre.js";
+      const appPath = "./index.js";
       const resp = await fetch(appPath);
       if (!resp.ok) {
         document.getElementById("root").innerHTML = "<div class='p-6 text-red-700 bg-red-50 rounded-xl'>No se pudo cargar el componente</div>";
@@ -139,7 +120,7 @@
       source = source.replace(/^\s*import\s+React.*?from\s+['"]react['"];?\s*$/m, "");
       source = source.replace(/^\s*import\s+\{[^}]*\}\s+from\s+['"]lucide-react['"];?\s*$/m, "");
 
-      // Inyectar React hooks, iconos y vocabulario
+      // Inyectar React hooks, iconos, vocabulario y parámetro de mes inicial
       const reactInject = `
 const { useState, useEffect } = React;
 const RotateCw = window.__Icons.RotateCw;
@@ -147,6 +128,7 @@ const Check = window.__Icons.Check;
 const X = window.__Icons.X;
 const ArrowRight = window.__Icons.ArrowRight;
 const vocabulary = ${JSON.stringify(vocabulary)};
+const initialMonth = '${month || ''}';
 `;
       source = source.replace(/(const\s+FlashcardGame\s*=\s*\(\)\s*=>\s*\{)/, reactInject + "$1");
 
